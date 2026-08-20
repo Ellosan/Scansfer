@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Three QR finder patterns plus a play triangle: scan in, video out. -->
+    <group android:translateX="0" android:translateY="0">
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M30,28h16v16h-16z M33,31v10h10v-10z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M35.5,33.5h5v5h-5z" />
+
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M62,28h16v16h-16z M65,31v10h10v-10z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M67.5,33.5h5v5h-5z" />
+
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M30,60h16v16h-16z M33,63v10h10v-10z" />
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M35.5,65.5h5v5h-5z" />
+
+        <path
+            android:fillColor="#FFFFFFFF"
+            android:pathData="M62,58l16,10l-16,10z" />
+    </group>
+</vector>
