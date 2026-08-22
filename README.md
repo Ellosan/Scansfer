@@ -106,17 +106,19 @@ Requires JDK 17 and the Android SDK (compileSdk 35). Minimum supported device is
 Android 10 (API 29), which is what lets the app write to the gallery without any
 storage permission — the only permission it asks for is the camera.
 
+Every dependency is FLOSS, which keeps the app eligible for F-Droid: AndroidX and
+CameraX (Apache-2.0), zxing-cpp and ZXing (Apache-2.0), Accompanist (Apache-2.0).
+No Google Play Services, Firebase or ML Kit.
+
 ## Design notes
 
-- **ML Kit does the detecting** (bundled model, so it works with no network and
-  no Play Services download) because it is markedly better than the alternatives
-  at locking onto a dense, moving code. Its `rawBytes` is the byte-exact payload.
-  A few devices only surface a decoded string; the analyzer notices detections
-  that never parse and falls back to ZXing, which always returns raw byte
-  segments. This is most of the 25 MB release APK, and worth it for an app whose
-  point is working with no network at all.
-- **ZXing does the encoding**, one bitmap pixel per QR module, scaled up with
-  nearest-neighbour filtering so module edges stay razor sharp for free.
+- **zxing-cpp does the detecting.** It reads CameraX frames directly and returns
+  the raw byte payload, so there is no charset round trip to get wrong. It is
+  Apache-2.0 and entirely offline — the app requests no permission but the camera.
+- **ZXing (Java) does the encoding**, one bitmap pixel per QR module, scaled up
+  with nearest-neighbour filtering so module edges stay razor sharp for free.
+  Keeping the pure-Java encoder is deliberate: it is what lets the QR round trip
+  be tested on the JVM, with no device or native library in the loop.
 - **The file is memory-mapped, not loaded**, so the fountain encoder can hop
   around a large one without putting it on the heap. On the receiving side
   decoded blocks are streamed straight into MediaStore rather than assembled into
@@ -133,6 +135,10 @@ MIT — see [LICENSE](LICENSE).
 
 ## Version history
 
+- **2.1.0** — replaced ML Kit with zxing-cpp for barcode detection. The app is
+  now fully FLOSS and F-Droid eligible; as a side effect the `INTERNET` and
+  `ACCESS_NETWORK_STATE` permissions disappeared (they came from ML Kit's
+  telemetry transport) and the release APK shrank from 25 MB to under 10 MB.
 - **2.0.0** — photo support. The picker now takes photos and videos, received
   files route to `Pictures/` or `Movies/` by kind, and the send and receive
   screens name what they are handling. No protocol change.
