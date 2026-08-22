@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Scansfer brand mark. Generated from the same definition as the launcher
+     icon; tinted by the caller, so it carries no colour of its own. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512"
+    android:tint="?attr/colorControlNormal">
+
+    <path
+        android:pathData="M76 160 L76 114 Q76 76 114 76 L160 76"
+        android:strokeWidth="28"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M352 76 L398 76 Q436 76 436 114 L436 160"
+        android:strokeWidth="28"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M76 352 L76 398 Q76 436 114 436 L160 436"
+        android:strokeWidth="28"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M352 436 L398 436 Q436 436 436 398 L436 352"
+        android:strokeWidth="28"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M180 218 L366 218"
+        android:strokeWidth="34"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M330.3290483770851 185.88173089477482 L366 218 L330.3290483770851 250.11826910522518"
+        android:strokeWidth="34"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M332 294 L146 294"
+        android:strokeWidth="34"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M181.6709516229149 326.1182691052252 L146 294 L181.6709516229149 261.8817308947748"
+        android:strokeWidth="34"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+</vector>

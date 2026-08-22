@@ -11,7 +11,7 @@ That description is `com.scansfer.app.yml`, next to this file.
 - [x] The app is licensed (MIT, see `LICENSE` in the project root)
 - [x] Every dependency is open source — no Google Play Services, Firebase or ML Kit
 - [x] Store text and icon exist in `fastlane/metadata/android/en-US/`
-- [x] The release is tagged in git as `v2.1.1`
+- [x] The release is tagged in git as `v2.1.2`
 - [ ] Screenshots added to `fastlane/metadata/android/en-US/images/phoneScreenshots/`
 - [ ] The code is on the repository's default branch
 - [ ] The GitHub repository is public
