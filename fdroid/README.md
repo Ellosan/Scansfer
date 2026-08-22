@@ -11,10 +11,14 @@ That description is `com.scansfer.app.yml`, next to this file.
 - [x] The app is licensed (MIT, see `LICENSE` in the project root)
 - [x] Every dependency is open source — no Google Play Services, Firebase or ML Kit
 - [x] Store text and icon exist in `fastlane/metadata/android/en-US/`
-- [x] The release is tagged in git as `v2.1.2`
-- [ ] Screenshots added to `fastlane/metadata/android/en-US/images/phoneScreenshots/`
-- [ ] The code is on the repository's default branch
+- [x] The release is tagged in git as `v2.1.3`
+- [x] Screenshots added to `fastlane/metadata/android/en-US/images/phoneScreenshots/`
+- [x] The code is on the repository's default branch
 - [ ] The GitHub repository is public
+
+Note that F-Droid reads the store text and screenshots from the tagged
+release, not from the default branch, so any change to them needs a new tag
+before it will show up on the listing.
 
 ## Submitting
 
