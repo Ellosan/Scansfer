@@ -31,11 +31,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Schedule
-import androidx.compose.material.icons.rounded.VideoLibrary
+import androidx.compose.material.icons.rounded.PermMedia
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
@@ -60,6 +61,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.scansfer.app.core.MediaKind
 import com.scansfer.app.core.TransferProfile
 import com.scansfer.app.ui.components.ChunkyProgress
 import com.scansfer.app.ui.components.SelectableRow
@@ -67,8 +69,8 @@ import com.scansfer.app.ui.components.StatTile
 import com.scansfer.app.ui.theme.MonoNumber
 import com.scansfer.app.util.Format
 import com.scansfer.app.util.findActivity
-import com.scansfer.app.util.VideoInfo
-import com.scansfer.app.util.VideoSource
+import com.scansfer.app.util.MediaInfo
+import com.scansfer.app.util.MediaSource
 
 @Composable
 fun SendScreen(onBack: () -> Unit, viewModel: SendViewModel = viewModel()) {
@@ -78,7 +80,7 @@ fun SendScreen(onBack: () -> Unit, viewModel: SendViewModel = viewModel()) {
         BeamScreen(
             state = state,
             profile = viewModel.profile,
-            fileName = viewModel.video?.displayName.orEmpty(),
+            fileName = viewModel.media?.displayName.orEmpty(),
             onTogglePause = engine::togglePaused,
             onStop = viewModel::stop,
         )
@@ -95,7 +97,7 @@ private fun SendSetupScreen(viewModel: SendViewModel, onBack: () -> Unit) {
     ) { uri -> viewModel.choose(uri) }
 
     fun openPicker() = picker.launch(
-        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.VideoOnly),
+        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo),
     )
 
     Column(
@@ -113,7 +115,7 @@ private fun SendSetupScreen(viewModel: SendViewModel, onBack: () -> Unit) {
             IconButton(onClick = onBack) {
                 Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
             }
-            Text("Send a video", style = MaterialTheme.typography.titleLarge)
+            Text("Send", style = MaterialTheme.typography.titleLarge)
         }
 
         Column(
@@ -124,15 +126,15 @@ private fun SendSetupScreen(viewModel: SendViewModel, onBack: () -> Unit) {
         ) {
             Spacer(Modifier.height(8.dp))
 
-            val video = viewModel.video
-            if (video == null) {
+            val media = viewModel.media
+            if (media == null) {
                 EmptyPicker(
                     loading = viewModel.inspecting,
                     error = viewModel.pickError,
                     onPick = ::openPicker,
                 )
             } else {
-                VideoCard(video = video, onChange = ::openPicker, onClear = viewModel::clear)
+                MediaCard(media = media, onChange = ::openPicker, onClear = viewModel::clear)
                 Spacer(Modifier.height(28.dp))
 
                 Text("Transfer speed", style = MaterialTheme.typography.titleMedium)
@@ -149,17 +151,18 @@ private fun SendSetupScreen(viewModel: SendViewModel, onBack: () -> Unit) {
                         SelectableRow(
                             title = option.label,
                             subtitle = option.tagline,
-                            trailing = "~${Format.duration(option.estimateSeconds(video.sizeBytes))}",
+                            trailing = "~${Format.duration(option.estimateSeconds(media.sizeBytes))}",
                             selected = viewModel.profile == option,
                             onClick = { viewModel.selectProfile(option) },
                         )
                     }
                 }
 
-                if (video.sizeBytes > VideoSource.COMFORTABLE_LIMIT_BYTES) {
+                if (media.sizeBytes > MediaSource.COMFORTABLE_LIMIT_BYTES) {
                     Spacer(Modifier.height(16.dp))
                     LongTransferNotice(
-                        estimate = viewModel.profile.estimateSeconds(video.sizeBytes),
+                        kind = media.kind,
+                        estimate = viewModel.profile.estimateSeconds(media.sizeBytes),
                     )
                 }
             }
@@ -168,7 +171,7 @@ private fun SendSetupScreen(viewModel: SendViewModel, onBack: () -> Unit) {
         }
 
         AnimatedVisibility(
-            visible = viewModel.video != null,
+            visible = viewModel.media != null,
             enter = fadeIn(),
             exit = fadeOut(),
         ) {
@@ -213,26 +216,27 @@ private fun EmptyPicker(loading: Boolean, error: String?, onPick: () -> Unit) {
             if (loading) {
                 CircularProgressIndicator()
                 Spacer(Modifier.height(20.dp))
-                Text("Reading the video…", style = MaterialTheme.typography.bodyMedium)
+                Text("Reading the file…", style = MaterialTheme.typography.bodyMedium)
             } else {
                 Icon(
-                    Icons.Rounded.VideoLibrary,
+                    Icons.Rounded.PermMedia,
                     contentDescription = null,
                     modifier = Modifier.size(48.dp),
                     tint = MaterialTheme.colorScheme.primary,
                 )
                 Spacer(Modifier.height(16.dp))
-                Text("Choose a video", style = MaterialTheme.typography.titleMedium)
+                Text("Choose a photo or video", style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "Short clips work best — a few megabytes goes over in minutes.",
+                    "Photos are the quick case — a few minutes at most. Videos " +
+                        "work too, but keep the clip short.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 8.dp),
                 )
                 Spacer(Modifier.height(20.dp))
                 FilledTonalButton(onClick = onPick, shape = RoundedCornerShape(16.dp)) {
-                    Text("Browse videos")
+                    Text("Browse photos & videos")
                 }
                 if (error != null) {
                     Spacer(Modifier.height(14.dp))
@@ -248,7 +252,7 @@ private fun EmptyPicker(loading: Boolean, error: String?, onPick: () -> Unit) {
 }
 
 @Composable
-private fun VideoCard(video: VideoInfo, onChange: () -> Unit, onClear: () -> Unit) {
+private fun MediaCard(media: MediaInfo, onChange: () -> Unit, onClear: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -262,7 +266,7 @@ private fun VideoCard(video: VideoInfo, onChange: () -> Unit, onClear: () -> Uni
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center,
             ) {
-                val thumb = video.thumbnail
+                val thumb = media.thumbnail
                 if (thumb != null) {
                     Image(
                         bitmap = thumb.asImageBitmap(),
@@ -272,13 +276,21 @@ private fun VideoCard(video: VideoInfo, onChange: () -> Unit, onClear: () -> Uni
                     )
                 } else {
                     Icon(
-                        Icons.Rounded.Movie,
+                        if (media.kind == MediaKind.PHOTO) Icons.Rounded.Image else Icons.Rounded.Movie,
                         contentDescription = null,
                         modifier = Modifier.size(40.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                if (video.durationMs > 0) {
+                // A video shows its length; a photo shows its pixel dimensions.
+                val badge = when {
+                    media.kind == MediaKind.VIDEO && media.durationMs > 0 ->
+                        Format.clock(media.durationMs)
+                    media.kind == MediaKind.PHOTO && media.pixelSize != null ->
+                        "${media.pixelSize.width} × ${media.pixelSize.height}"
+                    else -> null
+                }
+                if (badge != null) {
                     Surface(
                         color = Color.Black.copy(alpha = 0.6f),
                         shape = RoundedCornerShape(8.dp),
@@ -287,7 +299,7 @@ private fun VideoCard(video: VideoInfo, onChange: () -> Unit, onClear: () -> Uni
                             .padding(10.dp),
                     ) {
                         Text(
-                            Format.clock(video.durationMs),
+                            badge,
                             style = MaterialTheme.typography.labelMedium.merge(MonoNumber),
                             color = Color.White,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
@@ -301,21 +313,21 @@ private fun VideoCard(video: VideoInfo, onChange: () -> Unit, onClear: () -> Uni
             ) {
                 Column(Modifier.weight(1f)) {
                     Text(
-                        video.displayName,
+                        media.displayName,
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        Format.bytes(video.sizeBytes),
+                        Format.bytes(media.sizeBytes),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 TextButton(onClick = onChange) { Text("Change") }
                 IconButton(onClick = onClear) {
-                    Icon(Icons.Rounded.Close, contentDescription = "Remove video")
+                    Icon(Icons.Rounded.Close, contentDescription = "Remove")
                 }
             }
         }
@@ -323,7 +335,7 @@ private fun VideoCard(video: VideoInfo, onChange: () -> Unit, onClear: () -> Uni
 }
 
 @Composable
-private fun LongTransferNotice(estimate: Long) {
+private fun LongTransferNotice(kind: MediaKind, estimate: Long) {
     Surface(
         shape = RoundedCornerShape(18.dp),
         color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.12f),
@@ -339,7 +351,11 @@ private fun LongTransferNotice(estimate: Long) {
             Spacer(Modifier.width(12.dp))
             Text(
                 "This one is big. Expect around ${Format.duration(estimate)} of both phones " +
-                    "sitting still. A shorter clip will feel much better.",
+                    "sitting still. " + if (kind == MediaKind.PHOTO) {
+                        "A smaller photo will feel much better."
+                    } else {
+                        "A shorter clip will feel much better."
+                    },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface,
             )

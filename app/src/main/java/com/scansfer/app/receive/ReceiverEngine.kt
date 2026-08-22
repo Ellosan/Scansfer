@@ -166,14 +166,15 @@ class ReceiverEngine(
                     index++
                 }
                 check(crc.value.toInt() == active.fileCrc) {
-                    "The rebuilt video failed its checksum"
+                    "The rebuilt file failed its checksum"
                 }
-                MediaStoreSaver.saveVideo(
+                MediaStoreSaver.save(
                     context = context,
                     decoder = target,
                     fileSize = active.fileSize,
                     displayName = active.fileName,
                     mimeType = active.mimeType,
+                    kind = active.kind,
                 )
             }
 
@@ -183,7 +184,7 @@ class ReceiverEngine(
                     onFailure = { error ->
                         current.copy(
                             stage = ReceiveStage.FAILED,
-                            error = error.message ?: "Could not save the video",
+                            error = error.message ?: "Could not save the file",
                         )
                     },
                 )

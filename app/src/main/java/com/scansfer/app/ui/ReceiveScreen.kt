@@ -34,6 +34,7 @@ import androidx.compose.material.icons.rounded.FlashlightOn
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -62,6 +63,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import com.scansfer.app.core.MediaKind
 import com.scansfer.app.receive.ReceiveStage
 import com.scansfer.app.receive.ReceiverState
 import com.scansfer.app.ui.components.ChunkyProgress
@@ -69,6 +71,7 @@ import com.scansfer.app.ui.components.StatTile
 import com.scansfer.app.ui.components.StatusPill
 import com.scansfer.app.ui.theme.Teal
 import com.scansfer.app.util.Format
+import com.scansfer.app.util.MediaStoreSaver
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -172,7 +175,7 @@ private fun ProgressPanel(state: ReceiverState) {
             val manifest = state.manifest
             if (manifest == null) {
                 Text(
-                    "Waiting for a video",
+                    "Waiting for a sender",
                     style = MaterialTheme.typography.titleMedium,
                     color = Color.White,
                 )
@@ -286,6 +289,8 @@ private fun Reticle(locked: Boolean, modifier: Modifier = Modifier) {
 private fun CompletedScreen(state: ReceiverState, onAgain: () -> Unit, onBack: () -> Unit) {
     val context = LocalContext.current
     val uri = state.savedUri
+    val kind = state.manifest?.kind ?: MediaKind.VIDEO
+    val photo = kind == MediaKind.PHOTO
 
     Column(
         Modifier
@@ -303,7 +308,10 @@ private fun CompletedScreen(state: ReceiverState, onAgain: () -> Unit, onBack: (
             modifier = Modifier.size(88.dp),
         )
         Spacer(Modifier.height(24.dp))
-        Text("Video received", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            if (photo) "Photo received" else "Video received",
+            style = MaterialTheme.typography.headlineMedium,
+        )
         Spacer(Modifier.height(10.dp))
         Text(
             state.manifest?.fileName ?: "Saved to your gallery",
@@ -313,7 +321,7 @@ private fun CompletedScreen(state: ReceiverState, onAgain: () -> Unit, onBack: (
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            "Movies › Scansfer",
+            MediaStoreSaver.albumPath(kind),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -321,18 +329,21 @@ private fun CompletedScreen(state: ReceiverState, onAgain: () -> Unit, onBack: (
         Spacer(Modifier.height(36.dp))
 
         Button(
-            onClick = { uri?.let { openVideo(context, it) } },
+            onClick = { uri?.let { openMedia(context, it, kind) } },
             enabled = uri != null,
             modifier = Modifier.fillMaxWidth().height(54.dp),
             shape = RoundedCornerShape(18.dp),
         ) {
-            Icon(Icons.Rounded.PlayArrow, contentDescription = null)
+            Icon(
+                if (photo) Icons.Rounded.Visibility else Icons.Rounded.PlayArrow,
+                contentDescription = null,
+            )
             Spacer(Modifier.width(8.dp))
-            Text("Play video")
+            Text(if (photo) "View photo" else "Play video")
         }
         Spacer(Modifier.height(12.dp))
         OutlinedButton(
-            onClick = { uri?.let { shareVideo(context, it, state.manifest?.mimeType) } },
+            onClick = { uri?.let { shareMedia(context, it, state.manifest?.mimeType, kind) } },
             enabled = uri != null,
             modifier = Modifier.fillMaxWidth().height(54.dp),
             shape = RoundedCornerShape(18.dp),
@@ -416,8 +427,8 @@ private fun PermissionGate(onRequest: () -> Unit, onBack: () -> Unit) {
         )
         Spacer(Modifier.height(12.dp))
         Text(
-            "The camera is how the video arrives — it reads the QR codes on the " +
-                "other phone's screen. Nothing is recorded or uploaded.",
+            "The camera is how the photo or video arrives — it reads the QR codes " +
+                "on the other phone's screen. Nothing is recorded or uploaded.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -435,19 +446,28 @@ private fun PermissionGate(onRequest: () -> Unit, onBack: () -> Unit) {
     }
 }
 
-private fun openVideo(context: android.content.Context, uri: Uri) {
+private fun openMedia(context: android.content.Context, uri: Uri, kind: MediaKind) {
     val intent = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(uri, "video/*")
+        setDataAndType(uri, kind.wildcardMimeType)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     runCatching { context.startActivity(intent) }
 }
 
-private fun shareVideo(context: android.content.Context, uri: Uri, mimeType: String?) {
+private fun shareMedia(
+    context: android.content.Context,
+    uri: Uri,
+    mimeType: String?,
+    kind: MediaKind,
+) {
     val intent = Intent(Intent.ACTION_SEND).apply {
-        type = mimeType?.ifBlank { null } ?: "video/*"
+        type = mimeType?.ifBlank { null } ?: kind.wildcardMimeType
         putExtra(Intent.EXTRA_STREAM, uri)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    runCatching { context.startActivity(Intent.createChooser(intent, "Share video")) }
+    runCatching {
+        context.startActivity(
+            Intent.createChooser(intent, if (kind == MediaKind.PHOTO) "Share photo" else "Share video"),
+        )
+    }
 }

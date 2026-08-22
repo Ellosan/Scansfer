@@ -22,7 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CameraAlt
 import androidx.compose.material.icons.rounded.QrCode2
-import androidx.compose.material.icons.rounded.Videocam
+import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -86,14 +86,14 @@ fun HomeScreen(onSend: () -> Unit, onReceive: () -> Unit) {
             Spacer(Modifier.height(28.dp))
 
             Text(
-                "Send a video\nwith your camera.",
+                "Send a photo\nwith your camera.",
                 style = MaterialTheme.typography.displaySmall,
                 lineHeight = 44.sp,
             )
             Spacer(Modifier.height(12.dp))
             Text(
                 "One phone plays a stream of QR codes. The other watches. " +
-                    "No Wi-Fi, no cable, no account — just line of sight.",
+                    "Photos and videos, no Wi-Fi, no cable, no account — just line of sight.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -101,16 +101,16 @@ fun HomeScreen(onSend: () -> Unit, onReceive: () -> Unit) {
             Spacer(Modifier.height(32.dp))
 
             ActionCard(
-                icon = Icons.Rounded.Videocam,
-                title = "Send a video",
-                subtitle = "Pick a clip and show it as QR codes",
+                icon = Icons.AutoMirrored.Rounded.Send,
+                title = "Send",
+                subtitle = "Pick a photo or video and show it as QR codes",
                 accent = Violet,
                 onClick = onSend,
             )
             Spacer(Modifier.height(14.dp))
             ActionCard(
                 icon = Icons.Rounded.CameraAlt,
-                title = "Receive a video",
+                title = "Receive",
                 subtitle = "Point your camera at the other screen",
                 accent = Teal,
                 onClick = onReceive,
@@ -133,7 +133,7 @@ private fun HowItWorks() {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text("How it works", style = MaterialTheme.typography.titleMedium)
             Step(1, "Prop both phones up", "Face to face, 15–30 cm apart, screens steady.")
-            Step(2, "Start sending", "The sender turns the video into a flickering QR stream.")
+            Step(2, "Start sending", "The sender turns the file into a flickering QR stream.")
             Step(3, "Just watch", "Frames can be missed — the receiver fills the gaps on its own and saves to your gallery when it's done.")
         }
     }

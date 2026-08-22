@@ -9,8 +9,8 @@ import com.scansfer.app.core.Manifest
 import com.scansfer.app.core.Protocol
 import com.scansfer.app.core.QrCodec
 import com.scansfer.app.core.TransferProfile
-import com.scansfer.app.util.VideoInfo
-import com.scansfer.app.util.VideoSource
+import com.scansfer.app.util.MediaInfo
+import com.scansfer.app.util.MediaSource
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -40,15 +40,15 @@ data class SenderState(
 )
 
 /**
- * Drives the display side of a transfer: turns the picked video into an endless
- * stream of fountain-coded QR frames.
+ * Drives the display side of a transfer: turns the picked photo or video into an
+ * endless stream of fountain-coded QR frames.
  *
  * There is no back channel, so the sender simply keeps looping. The receiver
  * stops when it has enough; the user then stops the sender.
  */
 class SenderEngine(
     private val context: Context,
-    private val video: VideoInfo,
+    private val media: MediaInfo,
     private val profile: TransferProfile,
 ) {
 
@@ -72,7 +72,7 @@ class SenderEngine(
     suspend fun run() = withContext(Dispatchers.Default) {
         var source: ByteSource? = null
         try {
-            val opened = VideoSource.open(context, video.uri)
+            val opened = MediaSource.open(context, media.uri)
             source = opened
 
             val encoder = FountainEncoder(opened, profile.blockSize)
@@ -83,9 +83,9 @@ class SenderEngine(
                 blockSize = profile.blockSize,
                 blockCount = encoder.blockCount,
                 fileCrc = crcOf(opened),
-                fileName = video.displayName,
-                mimeType = video.mimeType,
-                durationMs = video.durationMs,
+                fileName = media.displayName,
+                mimeType = media.mimeType,
+                durationMs = media.durationMs,
             )
             // Every frame in a session is the same byte length, so the QR keeps a
             // constant version and never resizes mid-stream.
@@ -141,7 +141,7 @@ class SenderEngine(
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (t: Throwable) {
-            _state.update { it.copy(error = t.message ?: "Could not read that video") }
+            _state.update { it.copy(error = t.message ?: "Could not read that file") }
         } finally {
             source?.close()
         }

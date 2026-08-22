@@ -107,6 +107,9 @@ data class Manifest(
     val mimeType: String,
     val durationMs: Int,
 ) {
+    /** Photo or video, derived from the MIME type rather than sent explicitly. */
+    val kind: MediaKind get() = MediaKind.of(mimeType, fileName)
+
     /**
      * @param padTo pads the body so every frame in a session encodes to the same
      *   QR version. A manifest that shrank the symbol would make the code resize
