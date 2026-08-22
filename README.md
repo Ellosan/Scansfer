@@ -135,7 +135,8 @@ MIT — see [LICENSE](LICENSE).
 
 ## Version history
 
-- **2.1.1** — new app icon: camera scan brackets framing transfer arrows.
+- **2.1.2** — new app icon: camera scan brackets framing transfer arrows, used
+  for the launcher and in the app's own header.
 - **2.1.0** — replaced ML Kit with zxing-cpp for barcode detection. The app is
   now fully FLOSS and F-Droid eligible; as a side effect the `INTERNET` and
   `ACCESS_NETWORK_STATE` permissions disappeared (they came from ML Kit's
