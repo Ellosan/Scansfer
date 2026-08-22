@@ -127,6 +127,10 @@ storage permission — the only permission it asks for is the camera.
   while it downsamples, so the thumbnail is never sideways the way a raw
   `BitmapFactory` decode would be.
 
+## License
+
+MIT — see [LICENSE](LICENSE).
+
 ## Version history
 
 - **2.0.0** — photo support. The picker now takes photos and videos, received
