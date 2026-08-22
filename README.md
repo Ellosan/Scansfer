@@ -135,6 +135,8 @@ MIT — see [LICENSE](LICENSE).
 
 ## Version history
 
+- **2.1.3** — store screenshots for the F-Droid listing.
+
 - **2.1.2** — new app icon: camera scan brackets framing transfer arrows, used
   for the launcher and in the app's own header.
 - **2.1.0** — replaced ML Kit with zxing-cpp for barcode detection. The app is
