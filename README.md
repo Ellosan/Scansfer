@@ -1,11 +1,11 @@
 # Scansfer
 
-Send a video from one Android phone to another using nothing but a screen and a
-camera. No Wi-Fi, no Bluetooth, no cable, no account, no server.
+Send a photo or video from one Android phone to another using nothing but a
+screen and a camera. No Wi-Fi, no Bluetooth, no cable, no account, no server.
 
-One phone turns the video into a stream of QR codes and plays them. The other
-phone watches through its camera and rebuilds the file. Missed frames are
-expected and handled — the receiver simply keeps watching until it has enough.
+One phone turns the file into a stream of QR codes and plays them. The other
+phone watches through its camera and rebuilds it. Missed frames are expected and
+handled — the receiver simply keeps watching until it has enough.
 
 ## How it works
 
@@ -37,9 +37,15 @@ offset  size  field
 ```
 
 A manifest frame carries the file name, size, MIME type, block geometry and a
-CRC32 of the whole video. It is re-broadcast every 24 frames so the receiver can
+CRC32 of the whole file. It is re-broadcast every 24 frames so the receiver can
 join a transfer that is already running. A data frame carries a session id, the
 symbol seed, and the coded payload.
+
+Photo-versus-video is **derived from the manifest's MIME type**, not sent as its
+own field — which is why adding photo support in 2.0 needed no wire change at
+all, and why 1.x and 2.x senders and receivers still understand each other. The
+transfer itself is bytes in, identical bytes out, so a photo keeps its EXIF
+metadata and orientation.
 
 Two details that matter more than they look:
 
@@ -58,13 +64,15 @@ to decode.
 ## Speed
 
 QR codes are a low-bandwidth channel, and the app is honest about it. Measured
-frame densities:
+frame densities, with estimates for a 2 MB photo and a 5 MB clip:
 
-| Profile  | Block | ECC | QR version | Modules | Ceiling  | 5 MB clip |
-|----------|-------|-----|------------|---------|----------|-----------|
-| Steady   | 400 B | Q   | 19         | 93      | 4 KB/s   | ~41 min   |
-| Balanced | 1 KB  | M   | 26         | 121     | 12 KB/s  | ~14 min   |
-| Turbo    | 1.8 KB| L   | 31         | 141     | 27 KB/s  | ~6 min    |
+| Profile  | Block | ECC | QR version | Modules | Ceiling  | 2 MB photo | 5 MB clip |
+|----------|-------|-----|------------|---------|----------|------------|-----------|
+| Steady   | 400 B | Q   | 19         | 93      | 4 KB/s   | ~17 min    | ~41 min   |
+| Balanced | 1 KB  | M   | 26         | 121     | 12 KB/s  | ~5.5 min   | ~14 min   |
+| Turbo    | 1.8 KB| L   | 31         | 141     | 27 KB/s  | ~2.5 min   | ~6 min    |
+
+Photos are the comfortable case; videos are usable but ask for patience.
 
 Frame rates are divisors of 60 so each code lands on a whole number of display
 refreshes — a code that changes mid-refresh tears and fails its checksum.
@@ -76,15 +84,15 @@ large enough to be a problem.
 
 ## Using it
 
-**Sending** — pick a video, choose a speed, tap Start. The screen goes white,
-brightness pins to maximum and the sleep timeout is blocked. Keep it running
-until the other phone says it's done.
+**Sending** — pick a photo or video from the system picker, choose a speed, tap
+Start. The screen goes white, brightness pins to maximum and the sleep timeout is
+blocked. Keep it running until the other phone says it's done.
 
 **Receiving** — point the camera at the sender's screen from 15–30 cm so the code
 fills the frame. Progress, live throughput and a remaining-time estimate update
 as blocks land. When the last block arrives the file is checked against the
-manifest CRC32 and saved to `Movies/Scansfer`, then offered for playback or
-sharing.
+manifest CRC32 and saved to `Pictures/Scansfer` or `Movies/Scansfer` depending on
+what it is, then offered for viewing or sharing.
 
 ## Build
 
@@ -98,20 +106,41 @@ Requires JDK 17 and the Android SDK (compileSdk 35). Minimum supported device is
 Android 10 (API 29), which is what lets the app write to the gallery without any
 storage permission — the only permission it asks for is the camera.
 
+Every dependency is FLOSS, which keeps the app eligible for F-Droid: AndroidX and
+CameraX (Apache-2.0), zxing-cpp and ZXing (Apache-2.0), Accompanist (Apache-2.0).
+No Google Play Services, Firebase or ML Kit.
+
 ## Design notes
 
-- **ML Kit does the detecting** (bundled model, so it works with no network and
-  no Play Services download) because it is markedly better than the alternatives
-  at locking onto a dense, moving code. Its `rawBytes` is the byte-exact payload.
-  A few devices only surface a decoded string; the analyzer notices detections
-  that never parse and falls back to ZXing, which always returns raw byte
-  segments. This is most of the 25 MB release APK, and worth it for an app whose
-  point is working with no network at all.
-- **ZXing does the encoding**, one bitmap pixel per QR module, scaled up with
-  nearest-neighbour filtering so module edges stay razor sharp for free.
-- **The video is memory-mapped, not loaded**, so the fountain encoder can hop
-  around a large file without putting it on the heap. On the receiving side
+- **zxing-cpp does the detecting.** It reads CameraX frames directly and returns
+  the raw byte payload, so there is no charset round trip to get wrong. It is
+  Apache-2.0 and entirely offline — the app requests no permission but the camera.
+- **ZXing (Java) does the encoding**, one bitmap pixel per QR module, scaled up
+  with nearest-neighbour filtering so module edges stay razor sharp for free.
+  Keeping the pure-Java encoder is deliberate: it is what lets the QR round trip
+  be tested on the JVM, with no device or native library in the loop.
+- **The file is memory-mapped, not loaded**, so the fountain encoder can hop
+  around a large one without putting it on the heap. On the receiving side
   decoded blocks are streamed straight into MediaStore rather than assembled into
   one big array first.
 - **Camera analysis runs at 1080p.** At 720p the modules of a version-31 symbol
   land below one pixel each.
+- **Photo previews go through `ImageDecoder`**, which applies EXIF orientation
+  while it downsamples, so the thumbnail is never sideways the way a raw
+  `BitmapFactory` decode would be.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+## Version history
+
+- **2.1.1** — new app icon: camera scan brackets framing transfer arrows.
+- **2.1.0** — replaced ML Kit with zxing-cpp for barcode detection. The app is
+  now fully FLOSS and F-Droid eligible; as a side effect the `INTERNET` and
+  `ACCESS_NETWORK_STATE` permissions disappeared (they came from ML Kit's
+  telemetry transport) and the release APK shrank from 25 MB to under 10 MB.
+- **2.0.0** — photo support. The picker now takes photos and videos, received
+  files route to `Pictures/` or `Movies/` by kind, and the send and receive
+  screens name what they are handling. No protocol change.
+- **1.0** — initial release, video only.

@@ -9,8 +9,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.scansfer.app.core.TransferProfile
 import com.scansfer.app.send.SenderEngine
-import com.scansfer.app.util.VideoInfo
-import com.scansfer.app.util.VideoSource
+import com.scansfer.app.util.MediaInfo
+import com.scansfer.app.util.MediaSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -18,7 +18,7 @@ import kotlinx.coroutines.withContext
 
 class SendViewModel(application: Application) : AndroidViewModel(application) {
 
-    var video by mutableStateOf<VideoInfo?>(null)
+    var media by mutableStateOf<MediaInfo?>(null)
         private set
 
     var profile by mutableStateOf(TransferProfile.DEFAULT)
@@ -41,15 +41,15 @@ class SendViewModel(application: Application) : AndroidViewModel(application) {
         inspecting = true
         viewModelScope.launch {
             val info = withContext(Dispatchers.IO) {
-                runCatching { VideoSource.inspect(getApplication(), uri) }.getOrNull()
+                runCatching { MediaSource.inspect(getApplication(), uri) }.getOrNull()
             }
             inspecting = false
             if (info == null) {
-                pickError = "That file could not be read. Try another video."
-            } else if (info.sizeBytes > VideoSource.MAX_BYTES) {
-                pickError = "That video is too large to send over QR."
+                pickError = "That file could not be read. Try another one."
+            } else if (info.sizeBytes > MediaSource.MAX_BYTES) {
+                pickError = "That file is too large to send over QR."
             } else {
-                video = info
+                media = info
             }
         }
     }
@@ -60,12 +60,12 @@ class SendViewModel(application: Application) : AndroidViewModel(application) {
 
     fun clear() {
         stop()
-        video = null
+        media = null
         pickError = null
     }
 
     fun start() {
-        val source = video ?: return
+        val source = media ?: return
         if (engine != null) return
         val created = SenderEngine(getApplication(), source, profile)
         engine = created

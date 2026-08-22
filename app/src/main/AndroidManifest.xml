@@ -33,14 +33,10 @@
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />
             </intent-filter>
         </activity>
-
-        <!-- Bundled barcode model: no Play Services download, works offline. -->
-        <meta-data
-            android:name="com.google.mlkit.vision.DEPENDENCIES"
-            android:value="barcode" />
     </application>
 
 </manifest>

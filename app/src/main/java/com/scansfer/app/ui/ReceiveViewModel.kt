@@ -26,9 +26,4 @@ class ReceiveViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun reset() = engine.reset()
-
-    override fun onCleared() {
-        analyzer.close()
-        super.onCleared()
-    }
 }
