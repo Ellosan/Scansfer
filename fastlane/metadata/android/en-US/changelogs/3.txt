@@ -1,0 +1,6 @@
+Replaced the QR reader with a fully open-source one, so Scansfer no longer
+contains any proprietary code.
+
+Two happy side effects: the app no longer asks for internet access at all, and
+now needs only the camera permission. The download also shrank from 25 MB to
+under 10 MB.

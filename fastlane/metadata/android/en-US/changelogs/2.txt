@@ -1,0 +1,5 @@
+Added photo support. The picker now takes photos as well as videos, and received
+files are sorted into your Pictures or Movies folder depending on what they are.
+
+Photos suit this kind of transfer much better than video: a typical photo goes
+over in a couple of minutes.

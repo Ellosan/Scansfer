@@ -1,0 +1,34 @@
+Scansfer moves a photo or video from one Android phone to another using nothing
+but a screen and a camera.
+
+One phone turns the file into a stream of QR codes and plays them. The other
+phone watches through its camera and rebuilds the file. There is no Wi-Fi, no
+Bluetooth, no cable, no account and no server anywhere in the process.
+
+Because the two phones never touch a network, nothing you send can be
+intercepted in transit, logged by a provider, or left sitting on someone else's
+computer. The file goes from one screen straight into the other camera.
+
+Missed frames are expected and handled. The sender does not number the pieces
+and hope they all arrive; it emits an endless stream of coded frames, and the
+receiver rebuilds the file once it has collected enough of them. You can look
+away, block the camera for a few seconds, or move the phones, and the transfer
+carries on rather than failing.
+
+When the last piece arrives the file is checked against a checksum sent with it,
+so a transfer either produces a byte-for-byte copy of the original or tells you
+it failed. Photos keep their original quality and metadata.
+
+Features:
+
+* Send photos and videos between two phones
+* Works completely offline, with no network of any kind
+* Requests one permission: the camera
+* Three speed settings, with an honest time estimate before you start
+* Recovers automatically from missed and unreadable frames
+* Verifies the finished file before saving it to your gallery
+* No ads, no tracking, no accounts
+
+Be aware that QR codes are a low bandwidth channel. A photo takes a few minutes
+and a video takes considerably longer. The app shows you an estimate for your
+file before you commit to it.
