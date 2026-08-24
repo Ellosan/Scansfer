@@ -1,21 +1,10 @@
-# F-Droid packaging metadata for Scansfer.
-#
-# This file does not belong to the app build. It is the description F-Droid
-# needs in order to build and publish Scansfer, and it gets copied into
-# F-Droid's own "fdroiddata" repository as metadata/com.scansfer.app.yml when
-# submitting. It lives here so it stays version-controlled alongside the code.
-#
-# See fdroid/README.md for what to do with it.
-
 Categories:
   - Connectivity
-  - Multimedia
+  - File Transfer
 License: MIT
 AuthorName: Ellosan
 SourceCode: https://github.com/Ellosan/Scansfer
 IssueTracker: https://github.com/Ellosan/Scansfer/issues
-
-AutoName: Scansfer
 
 RepoType: git
 Repo: https://github.com/Ellosan/Scansfer.git
