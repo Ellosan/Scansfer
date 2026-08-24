@@ -23,9 +23,14 @@ before it will show up on the listing.
 ## Submitting
 
 The file `com.scansfer.app.yml` next to this one is exactly what F-Droid needs.
-Paste it in as-is: no extra comments, and nothing added by hand. In particular
-do not add `AutoName` — F-Droid generates that itself with `fdroid checkupdates`,
-and adding it manually gets the merge request sent back.
+Paste it in as-is: no extra comments, and nothing added or removed by hand.
+
+`AutoName` in particular has to stay. `fdroid checkupdates` derives it from the
+app's manifest, and fdroiddata's CI runs that tool and then fails the job if it
+produced any change at all. So the committed file must already contain exactly
+what the tool would write, `AutoName` included, in the position it puts it:
+after `IssueTracker`, with a blank line either side. Dropping it fails the
+`checkupdates` job even though the file is otherwise valid.
 
 1. Make a free account at https://gitlab.com
 2. Open https://gitlab.com/fdroid/fdroiddata and press **Fork**. The fork has to

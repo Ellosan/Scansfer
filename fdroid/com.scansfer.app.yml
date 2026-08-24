@@ -6,6 +6,8 @@ AuthorName: Ellosan
 SourceCode: https://github.com/Ellosan/Scansfer
 IssueTracker: https://github.com/Ellosan/Scansfer/issues
 
+AutoName: Scansfer
+
 RepoType: git
 Repo: https://github.com/Ellosan/Scansfer.git
 
