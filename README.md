@@ -110,6 +110,42 @@ Every dependency is FLOSS, which keeps the app eligible for F-Droid: AndroidX an
 CameraX (Apache-2.0), zxing-cpp and ZXing (Apache-2.0), Accompanist (Apache-2.0).
 No Google Play Services, Firebase or ML Kit.
 
+## Releasing
+
+Every published APK is signed with `scansfer.jks`. Android will only install an
+update over an existing app when both are signed with the same key, so anyone who
+installed a previous build would have to uninstall first if a release ever went
+out signed with a different one. Keep the keystore backed up and out of this
+repository.
+
+F-Droid is unaffected either way — it builds from source and signs with its own
+key — but the APKs attached to GitHub releases are installed directly, so for
+those the key matters.
+
+To cut a release:
+
+```bash
+# 1. Raise versionCode and versionName in app/build.gradle.kts, and add
+#    fastlane/metadata/android/en-US/changelogs/<new versionCode>.txt
+
+# 2. Build, then align and sign
+./gradlew clean assembleRelease testDebugUnitTest
+zipalign -p -f 4 \
+  app/build/outputs/apk/release/app-release-unsigned.apk Scansfer-<version>.apk
+apksigner sign --ks scansfer.jks --ks-key-alias scansfer Scansfer-<version>.apk
+
+# 3. Confirm it is signed with the expected key before publishing
+apksigner verify --print-certs Scansfer-<version>.apk
+```
+
+The certificate digest should read
+`18:07:C7:30:FD:1B:0A:84:C2:6F:73:C8:E2:D2:63:17:C0:B3:BC:87:E7:85:39:A7:6D:D5:18:D1:CB:19:D9:52`.
+If it does not, the wrong key was used and the build must not be published.
+
+Then merge to `main`, tag the release (`git tag v<version> && git push origin
+v<version>`), and attach the signed APK to it. F-Droid watches the tags and picks
+the new version up on its own.
+
 ## Design notes
 
 - **zxing-cpp does the detecting.** It reads CameraX frames directly and returns
