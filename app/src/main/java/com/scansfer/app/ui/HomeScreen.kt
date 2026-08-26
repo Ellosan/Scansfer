@@ -94,7 +94,7 @@ fun HomeScreen(onSend: () -> Unit, onReceive: () -> Unit) {
             Spacer(Modifier.height(12.dp))
             Text(
                 "One phone plays a stream of QR codes. The other watches. " +
-                    "Photos and videos, no Wi-Fi, no cable, no account — just line of sight.",
+                    "Photos, videos and files — no Wi-Fi, no cable, no account.",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -104,7 +104,7 @@ fun HomeScreen(onSend: () -> Unit, onReceive: () -> Unit) {
             ActionCard(
                 icon = Icons.AutoMirrored.Rounded.Send,
                 title = "Send",
-                subtitle = "Pick a photo or video and show it as QR codes",
+                subtitle = "Pick a photo, video or file and show it as QR codes",
                 accent = Violet,
                 onClick = onSend,
             )

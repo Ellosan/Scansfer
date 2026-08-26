@@ -1,7 +1,8 @@
 # Scansfer
 
-Send a photo or video from one Android phone to another using nothing but a
-screen and a camera. No Wi-Fi, no Bluetooth, no cable, no account, no server.
+Send a photo, video or any other file from one Android phone to another using
+nothing but a screen and a camera. No Wi-Fi, no Bluetooth, no cable, no account,
+no server.
 
 One phone turns the file into a stream of QR codes and plays them. The other
 phone watches through its camera and rebuilds it. Missed frames are expected and
@@ -41,11 +42,16 @@ CRC32 of the whole file. It is re-broadcast every 24 frames so the receiver can
 join a transfer that is already running. A data frame carries a session id, the
 symbol seed, and the coded payload.
 
-Photo-versus-video is **derived from the manifest's MIME type**, not sent as its
-own field — which is why adding photo support in 2.0 needed no wire change at
-all, and why 1.x and 2.x senders and receivers still understand each other. The
-transfer itself is bytes in, identical bytes out, so a photo keeps its EXIF
-metadata and orientation.
+What kind of thing is being sent is **derived from the manifest's MIME type**,
+not sent as its own field — which is why photo support in 2.0 and arbitrary files
+in 2.2 both landed without touching the frame format. The transfer itself is
+bytes in, identical bytes out, so a photo keeps its EXIF metadata and orientation
+and a file arrives byte-for-byte.
+
+One caveat on mixing versions: a 2.2 sender offering a plain file to a pre-2.2
+receiver will have it filed as a video, because older builds only knew those two
+kinds. Photos and videos interoperate in every direction; plain files need 2.2 at
+both ends.
 
 Two details that matter more than they look:
 
@@ -84,15 +90,17 @@ large enough to be a problem.
 
 ## Using it
 
-**Sending** — pick a photo or video from the system picker, choose a speed, tap
-Start. The screen goes white, brightness pins to maximum and the sleep timeout is
+**Sending** — the send screen has two tabs. *Photo or video* uses the system
+photo picker; *File* uses the document picker and takes anything at all. Choose a
+speed, then tap Start. The screen goes white, brightness pins to maximum and the sleep timeout is
 blocked. Keep it running until the other phone says it's done.
 
 **Receiving** — point the camera at the sender's screen from 15–30 cm so the code
 fills the frame. Progress, live throughput and a remaining-time estimate update
 as blocks land. When the last block arrives the file is checked against the
-manifest CRC32 and saved to `Pictures/Scansfer` or `Movies/Scansfer` depending on
-what it is, then offered for viewing or sharing.
+manifest CRC32 and saved by kind — `Pictures/Scansfer`, `Movies/Scansfer`, or
+`Downloads/Scansfer` for anything that is neither — then offered for opening or
+sharing.
 
 ## Build
 
@@ -170,6 +178,9 @@ the new version up on its own.
 MIT — see [LICENSE](LICENSE).
 
 ## Version history
+
+- **2.2.0** — send any file, not just photos and videos. The send screen gains a
+  tab for it, and received files land in `Downloads/Scansfer`.
 
 - **2.1.3** — store screenshots for the F-Droid listing.
 

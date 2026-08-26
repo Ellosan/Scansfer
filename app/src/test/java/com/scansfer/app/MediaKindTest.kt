@@ -33,14 +33,30 @@ class MediaKindTest {
     }
 
     @Test
+    fun `anything that is not image or video is a plain file`() {
+        val files = listOf(
+            "application/pdf", "text/plain", "application/zip", "application/json",
+            "audio/mpeg", "application/octet-stream", "application/epub+zip",
+        )
+        for (mime in files) {
+            assertEquals("$mime should be a file", MediaKind.FILE, MediaKind.of(mime, "thing.bin"))
+        }
+        // Audio is a file, not a video: it must not land in the Movies folder.
+        assertEquals(MediaKind.FILE, MediaKind.of("audio/mpeg", "song.mp3"))
+        assertEquals(MediaKind.FILE, MediaKind.of(null, "notes.txt"))
+        assertEquals(MediaKind.FILE, MediaKind.of("", "archive.zip"))
+        // Nothing to go on at all is a file rather than a guess at media.
+        assertEquals(MediaKind.FILE, MediaKind.of(null, null))
+        assertEquals(MediaKind.FILE, MediaKind.of(null, "no-extension"))
+    }
+
+    @Test
     fun `a missing mime type falls back to the file extension`() {
         assertEquals(MediaKind.PHOTO, MediaKind.of(null, "holiday.JPG"))
         assertEquals(MediaKind.PHOTO, MediaKind.of("", "shot.heic"))
         assertEquals(MediaKind.PHOTO, MediaKind.of("application/octet-stream", "img.png"))
         assertEquals(MediaKind.VIDEO, MediaKind.of(null, "clip.mp4"))
         assertEquals(MediaKind.VIDEO, MediaKind.of("", "movie.mkv"))
-        // Nothing to go on at all: assume video, the more conservative container.
-        assertEquals(MediaKind.VIDEO, MediaKind.of(null, null))
     }
 
     @Test
@@ -48,6 +64,7 @@ class MediaKindTest {
         val names = listOf(
             "a.jpg", "a.jpeg", "a.png", "a.webp", "a.heic", "a.heif", "a.gif",
             "a.bmp", "a.avif", "a.mp4", "a.m4v", "a.mkv", "a.webm", "a.3gp", "a.mov",
+            "a.avi", "a.pdf", "a.txt", "a.csv", "a.json", "a.zip", "a.mp3", "a.epub",
         )
         for (name in names) {
             val mime = MediaKind.mimeForExtension(name)
@@ -67,6 +84,8 @@ class MediaKindTest {
             Triple("clip.mp4", "video/mp4", MediaKind.VIDEO),
             // A provider that hands back nothing useful still lands correctly.
             Triple("sunset.heic", "", MediaKind.PHOTO),
+            Triple("report.pdf", "application/pdf", MediaKind.FILE),
+            Triple("backup.zip", "", MediaKind.FILE),
         )
 
         for ((name, mime, expected) in cases) {
@@ -87,7 +106,13 @@ class MediaKindTest {
     fun `wildcard and default mime types are sane`() {
         assertEquals("image/*", MediaKind.PHOTO.wildcardMimeType)
         assertEquals("video/*", MediaKind.VIDEO.wildcardMimeType)
-        assertEquals(MediaKind.PHOTO, MediaKind.of(MediaKind.PHOTO.defaultMimeType))
-        assertEquals(MediaKind.VIDEO, MediaKind.of(MediaKind.VIDEO.defaultMimeType))
+        assertEquals("*/*", MediaKind.FILE.wildcardMimeType)
+        for (kind in MediaKind.entries) {
+            assertEquals(
+                "${kind.name} default mime should map back to itself",
+                kind,
+                MediaKind.of(kind.defaultMimeType),
+            )
+        }
     }
 }

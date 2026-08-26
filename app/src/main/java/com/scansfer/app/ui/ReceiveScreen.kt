@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.ErrorOutline
+import androidx.compose.material.icons.rounded.FileOpen
 import androidx.compose.material.icons.rounded.FlashlightOff
 import androidx.compose.material.icons.rounded.FlashlightOn
 import androidx.compose.material.icons.rounded.PhotoCamera
@@ -290,7 +291,6 @@ private fun CompletedScreen(state: ReceiverState, onAgain: () -> Unit, onBack: (
     val context = LocalContext.current
     val uri = state.savedUri
     val kind = state.manifest?.kind ?: MediaKind.VIDEO
-    val photo = kind == MediaKind.PHOTO
 
     Column(
         Modifier
@@ -309,7 +309,11 @@ private fun CompletedScreen(state: ReceiverState, onAgain: () -> Unit, onBack: (
         )
         Spacer(Modifier.height(24.dp))
         Text(
-            if (photo) "Photo received" else "Video received",
+            when (kind) {
+                MediaKind.PHOTO -> "Photo received"
+                MediaKind.VIDEO -> "Video received"
+                MediaKind.FILE -> "File received"
+            },
             style = MaterialTheme.typography.headlineMedium,
         )
         Spacer(Modifier.height(10.dp))
@@ -335,11 +339,21 @@ private fun CompletedScreen(state: ReceiverState, onAgain: () -> Unit, onBack: (
             shape = RoundedCornerShape(18.dp),
         ) {
             Icon(
-                if (photo) Icons.Rounded.Visibility else Icons.Rounded.PlayArrow,
+                when (kind) {
+                    MediaKind.PHOTO -> Icons.Rounded.Visibility
+                    MediaKind.VIDEO -> Icons.Rounded.PlayArrow
+                    MediaKind.FILE -> Icons.Rounded.FileOpen
+                },
                 contentDescription = null,
             )
             Spacer(Modifier.width(8.dp))
-            Text(if (photo) "View photo" else "Play video")
+            Text(
+                when (kind) {
+                    MediaKind.PHOTO -> "View photo"
+                    MediaKind.VIDEO -> "Play video"
+                    MediaKind.FILE -> "Open file"
+                },
+            )
         }
         Spacer(Modifier.height(12.dp))
         OutlinedButton(
@@ -467,7 +481,14 @@ private fun shareMedia(
     }
     runCatching {
         context.startActivity(
-            Intent.createChooser(intent, if (kind == MediaKind.PHOTO) "Share photo" else "Share video"),
+            Intent.createChooser(
+                intent,
+                when (kind) {
+                    MediaKind.PHOTO -> "Share photo"
+                    MediaKind.VIDEO -> "Share video"
+                    MediaKind.FILE -> "Share file"
+                },
+            ),
         )
     }
 }
