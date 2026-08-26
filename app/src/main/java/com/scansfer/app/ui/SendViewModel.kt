@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.scansfer.app.core.Entitlements
 import com.scansfer.app.core.TransferProfile
 import com.scansfer.app.send.SenderEngine
 import com.scansfer.app.util.MediaInfo
@@ -25,6 +26,11 @@ enum class SendTab(val label: String) {
 class SendViewModel(application: Application) : AndroidViewModel(application) {
 
     var tab by mutableStateOf(SendTab.MEDIA)
+        private set
+
+    val entitlements = Entitlements(application)
+
+    var unlockError by mutableStateOf<String?>(null)
         private set
 
     var media by mutableStateOf<MediaInfo?>(null)
@@ -69,6 +75,19 @@ class SendViewModel(application: Application) : AndroidViewModel(application) {
         tab = next
         media = null
         pickError = null
+        unlockError = null
+    }
+
+    fun redeem(code: String) {
+        unlockError = if (entitlements.redeem(code)) {
+            null
+        } else {
+            "That code was not recognised. Check it and try again."
+        }
+    }
+
+    fun clearUnlockError() {
+        unlockError = null
     }
 
     fun selectProfile(next: TransferProfile) {

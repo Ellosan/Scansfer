@@ -118,6 +118,30 @@ Every dependency is FLOSS, which keeps the app eligible for F-Droid: AndroidX an
 CameraX (Apache-2.0), zxing-cpp and ZXing (Apache-2.0), Accompanist (Apache-2.0).
 No Google Play Services, Firebase or ML Kit.
 
+## Premium
+
+Sending photos and videos is free. The File tab is unlocked with a one-off code,
+verified entirely on device.
+
+The app ships `app/src/main/res/raw/unlock_codes.bin`, a sorted table of
+truncated SHA-256 digests — one per issued code. Redeeming hashes the entered
+code and binary-searches that table, so there is no server to call, nothing to be
+down, and no network permission needed. The codes themselves are never in this
+repository and cannot be recovered from the hashes.
+
+This is not, and cannot be, tamper-proof. The source is public and MIT licensed,
+so anyone willing to edit one line and rebuild can remove the check. The gate
+exists to make paying the easy path for ordinary users, not to make bypassing it
+impossible — which is not achievable for open-source software, and pretending
+otherwise would only mean shipping something more annoying that fails just as
+surely.
+
+Receiving is deliberately never gated. Whoever receives a file did not choose
+what was sent, and refusing to accept it would punish the wrong person.
+
+Codes are not tied to a device, so they survive a reinstall or a new phone. That
+also means a code can be passed on; that trade favours the person who paid.
+
 ## Releasing
 
 Every published APK is signed with `scansfer.jks`. Android will only install an
