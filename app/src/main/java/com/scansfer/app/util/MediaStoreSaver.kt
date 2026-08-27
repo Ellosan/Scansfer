@@ -14,8 +14,11 @@ object MediaStoreSaver {
     private const val ALBUM = "Scansfer"
 
     /** Where a received item lands, for showing the user after a transfer. */
-    fun albumPath(kind: MediaKind): String =
-        if (kind == MediaKind.PHOTO) "Pictures › $ALBUM" else "Movies › $ALBUM"
+    fun albumPath(kind: MediaKind): String = when (kind) {
+        MediaKind.PHOTO -> "Pictures › $ALBUM"
+        MediaKind.VIDEO -> "Movies › $ALBUM"
+        MediaKind.FILE -> "Downloads › $ALBUM"
+    }
 
     /**
      * Streams the decoded blocks straight into the gallery. Writing block by
@@ -30,14 +33,19 @@ object MediaStoreSaver {
         kind: MediaKind,
     ): Uri {
         val resolver = context.contentResolver
-        val photo = kind == MediaKind.PHOTO
 
-        val collection = if (photo) {
-            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
-        } else {
-            MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        // Images and Video are indexed collections; anything else belongs in
+        // Downloads, which is the one collection that accepts arbitrary types.
+        val collection = when (kind) {
+            MediaKind.PHOTO -> MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            MediaKind.VIDEO -> MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+            MediaKind.FILE -> MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
         }
-        val directory = if (photo) Environment.DIRECTORY_PICTURES else Environment.DIRECTORY_MOVIES
+        val directory = when (kind) {
+            MediaKind.PHOTO -> Environment.DIRECTORY_PICTURES
+            MediaKind.VIDEO -> Environment.DIRECTORY_MOVIES
+            MediaKind.FILE -> Environment.DIRECTORY_DOWNLOADS
+        }
 
         val values = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, uniqueName(displayName, kind))
@@ -83,7 +91,11 @@ object MediaStoreSaver {
     }
 
     private fun uniqueName(displayName: String, kind: MediaKind): String {
-        val fallback = if (kind == MediaKind.PHOTO) "scansfer-photo.jpg" else "scansfer-video.mp4"
+        val fallback = when (kind) {
+            MediaKind.PHOTO -> "scansfer-photo.jpg"
+            MediaKind.VIDEO -> "scansfer-video.mp4"
+            MediaKind.FILE -> "scansfer-file.bin"
+        }
         val cleaned = displayName
             .replace(Regex("[\\\\/:*?\"<>|]"), "_")
             .ifBlank { fallback }

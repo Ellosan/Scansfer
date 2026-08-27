@@ -32,10 +32,13 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material.icons.rounded.AttachFile
+import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.PermMedia
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,11 +46,19 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,6 +73,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.scansfer.app.core.MediaKind
+import com.scansfer.app.core.Premium
 import com.scansfer.app.core.TransferProfile
 import com.scansfer.app.ui.components.ChunkyProgress
 import com.scansfer.app.ui.components.SelectableRow
@@ -92,13 +104,22 @@ fun SendScreen(onBack: () -> Unit, viewModel: SendViewModel = viewModel()) {
 
 @Composable
 private fun SendSetupScreen(viewModel: SendViewModel, onBack: () -> Unit) {
-    val picker = rememberLauncherForActivityResult(
+    val mediaPicker = rememberLauncherForActivityResult(
         ActivityResultContracts.PickVisualMedia(),
     ) { uri -> viewModel.choose(uri) }
 
-    fun openPicker() = picker.launch(
-        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo),
-    )
+    // The system photo picker cannot offer arbitrary files, so the File tab
+    // goes through the document picker instead.
+    val filePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> viewModel.choose(uri) }
+
+    fun openPicker() = when (viewModel.tab) {
+        SendTab.MEDIA -> mediaPicker.launch(
+            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo),
+        )
+        SendTab.FILE -> filePicker.launch(arrayOf("*/*"))
+    }
 
     Column(
         Modifier
@@ -118,6 +139,35 @@ private fun SendSetupScreen(viewModel: SendViewModel, onBack: () -> Unit) {
             Text("Send", style = MaterialTheme.typography.titleLarge)
         }
 
+        TabRow(
+            selectedTabIndex = viewModel.tab.ordinal,
+            containerColor = MaterialTheme.colorScheme.background,
+            modifier = Modifier.padding(horizontal = 12.dp),
+        ) {
+            SendTab.entries.forEach { entry ->
+                val locked = entry == SendTab.FILE && !viewModel.entitlements.isPremium
+                Tab(
+                    selected = viewModel.tab == entry,
+                    onClick = { viewModel.selectTab(entry) },
+                    text = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
+                            Text(entry.label, style = MaterialTheme.typography.titleSmall)
+                            if (locked) {
+                                Icon(
+                                    Icons.Rounded.Lock,
+                                    contentDescription = "Premium",
+                                    modifier = Modifier.size(14.dp),
+                                )
+                            }
+                        }
+                    },
+                )
+            }
+        }
+
         Column(
             Modifier
                 .weight(1f)
@@ -127,8 +177,16 @@ private fun SendSetupScreen(viewModel: SendViewModel, onBack: () -> Unit) {
             Spacer(Modifier.height(8.dp))
 
             val media = viewModel.media
-            if (media == null) {
+            val locked = viewModel.tab == SendTab.FILE && !viewModel.entitlements.isPremium
+            if (locked) {
+                PremiumGate(
+                    error = viewModel.unlockError,
+                    onRedeem = viewModel::redeem,
+                    onTyping = viewModel::clearUnlockError,
+                )
+            } else if (media == null) {
                 EmptyPicker(
+                    tab = viewModel.tab,
                     loading = viewModel.inspecting,
                     error = viewModel.pickError,
                     onPick = ::openPicker,
@@ -199,8 +257,109 @@ private fun SendSetupScreen(viewModel: SendViewModel, onBack: () -> Unit) {
     }
 }
 
+/**
+ * Shown in place of the file picker until premium is unlocked. It states what is
+ * behind the wall and takes a code; it does not nag, and nothing here touches
+ * the network.
+ */
 @Composable
-private fun EmptyPicker(loading: Boolean, error: String?, onPick: () -> Unit) {
+private fun PremiumGate(
+    error: String?,
+    onRedeem: (String) -> Unit,
+    onTyping: () -> Unit,
+) {
+    var code by rememberSaveable { mutableStateOf("") }
+    val context = LocalContext.current
+
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(24.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.16f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        Icons.Rounded.Lock,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+                Spacer(Modifier.width(14.dp))
+                Column {
+                    Text("Sending files is premium", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "€2.99, one off — no subscription",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(18.dp))
+            Text(
+                "Photos and videos stay free, and always will. Unlocking adds the " +
+                    "File tab, so you can send documents, archives — anything at all.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            Spacer(Modifier.height(20.dp))
+            OutlinedTextField(
+                value = code,
+                onValueChange = {
+                    code = it
+                    onTyping()
+                },
+                label = { Text("Unlock code") },
+                placeholder = { Text("XXXX-XXXX-XXXX") },
+                singleLine = true,
+                isError = error != null,
+                supportingText = error?.let { { Text(it) } },
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier.fillMaxWidth(),
+            )
+
+            Spacer(Modifier.height(12.dp))
+            Button(
+                onClick = { onRedeem(code) },
+                enabled = code.isNotBlank(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(16.dp),
+            ) {
+                Text("Unlock")
+            }
+
+            if (Premium.PURCHASE_URL.isNotBlank()) {
+                Spacer(Modifier.height(6.dp))
+                TextButton(
+                    onClick = {
+                        runCatching {
+                            context.startActivity(
+                                Intent(Intent.ACTION_VIEW, Uri.parse(Premium.PURCHASE_URL)),
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text("Get a code")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyPicker(tab: SendTab, loading: Boolean, error: String?, onPick: () -> Unit) {
     Surface(
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surfaceContainer,
@@ -219,24 +378,32 @@ private fun EmptyPicker(loading: Boolean, error: String?, onPick: () -> Unit) {
                 Text("Reading the file…", style = MaterialTheme.typography.bodyMedium)
             } else {
                 Icon(
-                    Icons.Rounded.PermMedia,
+                    if (tab == SendTab.MEDIA) Icons.Rounded.PermMedia else Icons.Rounded.FolderOpen,
                     contentDescription = null,
                     modifier = Modifier.size(48.dp),
                     tint = MaterialTheme.colorScheme.primary,
                 )
                 Spacer(Modifier.height(16.dp))
-                Text("Choose a photo or video", style = MaterialTheme.typography.titleMedium)
+                Text(
+                    if (tab == SendTab.MEDIA) "Choose a photo or video" else "Choose a file",
+                    style = MaterialTheme.typography.titleMedium,
+                )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "Photos are the quick case — a few minutes at most. Videos " +
-                        "work too, but keep the clip short.",
+                    if (tab == SendTab.MEDIA) {
+                        "Photos are the quick case — a few minutes at most. Videos " +
+                            "work too, but keep the clip short."
+                    } else {
+                        "Anything at all: a document, a note, a zip. Small files " +
+                            "arrive quickest — the estimate below is honest."
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 8.dp),
                 )
                 Spacer(Modifier.height(20.dp))
                 FilledTonalButton(onClick = onPick, shape = RoundedCornerShape(16.dp)) {
-                    Text("Browse photos & videos")
+                    Text(if (tab == SendTab.MEDIA) "Browse photos & videos" else "Browse files")
                 }
                 if (error != null) {
                     Spacer(Modifier.height(14.dp))
@@ -262,7 +429,7 @@ private fun MediaCard(media: MediaInfo, onChange: () -> Unit, onClear: () -> Uni
             Box(
                 Modifier
                     .fillMaxWidth()
-                    .aspectRatio(16f / 9f)
+                    .aspectRatio(if (media.kind == MediaKind.FILE) 2.6f else 16f / 9f)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center,
             ) {
@@ -276,7 +443,11 @@ private fun MediaCard(media: MediaInfo, onChange: () -> Unit, onClear: () -> Uni
                     )
                 } else {
                     Icon(
-                        if (media.kind == MediaKind.PHOTO) Icons.Rounded.Image else Icons.Rounded.Movie,
+                        when (media.kind) {
+                            MediaKind.PHOTO -> Icons.Rounded.Image
+                            MediaKind.VIDEO -> Icons.Rounded.Movie
+                            MediaKind.FILE -> Icons.Rounded.AttachFile
+                        },
                         contentDescription = null,
                         modifier = Modifier.size(40.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -288,6 +459,9 @@ private fun MediaCard(media: MediaInfo, onChange: () -> Unit, onClear: () -> Uni
                         Format.clock(media.durationMs)
                     media.kind == MediaKind.PHOTO && media.pixelSize != null ->
                         "${media.pixelSize.width} × ${media.pixelSize.height}"
+                    media.kind == MediaKind.FILE ->
+                        media.displayName.substringAfterLast('.', "").uppercase()
+                            .takeIf { it.isNotBlank() }
                     else -> null
                 }
                 if (badge != null) {
@@ -351,10 +525,10 @@ private fun LongTransferNotice(kind: MediaKind, estimate: Long) {
             Spacer(Modifier.width(12.dp))
             Text(
                 "This one is big. Expect around ${Format.duration(estimate)} of both phones " +
-                    "sitting still. " + if (kind == MediaKind.PHOTO) {
-                        "A smaller photo will feel much better."
-                    } else {
-                        "A shorter clip will feel much better."
+                    "sitting still. " + when (kind) {
+                        MediaKind.PHOTO -> "A smaller photo will feel much better."
+                        MediaKind.VIDEO -> "A shorter clip will feel much better."
+                        MediaKind.FILE -> "A smaller file will feel much better."
                     },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface,

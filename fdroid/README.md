@@ -22,15 +22,34 @@ before it will show up on the listing.
 
 ## Submitting
 
+The file `com.scansfer.app.yml` next to this one is exactly what F-Droid needs.
+Paste it in as-is: no extra comments, and nothing added or removed by hand.
+
+`AutoName` in particular has to stay. `fdroid checkupdates` derives it from the
+app's manifest, and fdroiddata's CI runs that tool and then fails the job if it
+produced any change at all. So the committed file must already contain exactly
+what the tool would write, `AutoName` included, in the position it puts it:
+after `IssueTracker`, with a blank line either side. Dropping it fails the
+`checkupdates` job even though the file is otherwise valid.
+
 1. Make a free account at https://gitlab.com
-2. Open https://gitlab.com/fdroid/fdroiddata and press **Fork**
+2. Open https://gitlab.com/fdroid/fdroiddata and press **Fork**. The fork has to
+   be **public**, and the branch you work on must be **unprotected** — fdroiddata
+   merges fast-forward and cannot do it otherwise.
 3. In your fork, create `metadata/com.scansfer.app.yml` and paste in the
    contents of `com.scansfer.app.yml` from this folder
-4. Commit it with the message: `New App: com.scansfer.app`
-5. Open a merge request against `fdroid/fdroiddata`
+4. Commit it with the message: `New app: Scansfer`
+5. Open a merge request against `fdroid/fdroiddata`, titled `New app: Scansfer`
+6. In the merge request's **Description** box, pick the **App inclusion**
+   template from the dropdown, delete the instructions at the top, tick the
+   boxes that apply, and remove the `Closes rfp#` / `Closes fdroiddata#` lines
+   if there is no matching issue
 
-F-Droid volunteers then review it. They may ask for changes; that is normal.
-Once merged, the first build usually appears within a day or two.
+Then wait for the pipeline to finish. Only tick "Builds with `fdroid build` and
+all pipelines pass" once it has actually gone green.
+
+F-Droid volunteers then review it. They may ask for changes; that is normal and
+is not a rejection.
 
 ## After it is published
 

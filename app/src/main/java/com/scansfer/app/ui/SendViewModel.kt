@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.scansfer.app.core.Entitlements
 import com.scansfer.app.core.TransferProfile
 import com.scansfer.app.send.SenderEngine
 import com.scansfer.app.util.MediaInfo
@@ -16,7 +17,21 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/** Which picker the send screen is offering. */
+enum class SendTab(val label: String) {
+    MEDIA("Photo or video"),
+    FILE("File"),
+}
+
 class SendViewModel(application: Application) : AndroidViewModel(application) {
+
+    var tab by mutableStateOf(SendTab.MEDIA)
+        private set
+
+    val entitlements = Entitlements(application)
+
+    var unlockError by mutableStateOf<String?>(null)
+        private set
 
     var media by mutableStateOf<MediaInfo?>(null)
         private set
@@ -52,6 +67,27 @@ class SendViewModel(application: Application) : AndroidViewModel(application) {
                 media = info
             }
         }
+    }
+
+    /** Switching tabs drops the current pick; the two pickers are unrelated. */
+    fun selectTab(next: SendTab) {
+        if (engine != null || tab == next) return
+        tab = next
+        media = null
+        pickError = null
+        unlockError = null
+    }
+
+    fun redeem(code: String) {
+        unlockError = if (entitlements.redeem(code)) {
+            null
+        } else {
+            "That code was not recognised. Check it and try again."
+        }
+    }
+
+    fun clearUnlockError() {
+        unlockError = null
     }
 
     fun selectProfile(next: TransferProfile) {

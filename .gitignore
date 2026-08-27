@@ -10,3 +10,7 @@
 .cxx
 local.properties
 .kotlin/
+
+# Never commit issued unlock codes - only their hashes ship.
+*unlock-codes*.txt
+*unlock-codes*.csv

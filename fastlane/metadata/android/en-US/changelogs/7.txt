@@ -1,0 +1,5 @@
+Send any file, not just photos and videos.
+
+The send screen now has two tabs: one for photos and videos, one for everything
+else — documents, notes, archives, whatever you have. Received files are saved to
+your Downloads folder, under Scansfer.

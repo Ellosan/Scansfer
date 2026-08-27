@@ -64,12 +64,29 @@ object MediaSource {
 
         val resolvedMime = resolver.getType(uri)
         val kind = MediaKind.of(resolvedMime, name)
-        if (name.isBlank()) name = if (kind == MediaKind.PHOTO) "photo.jpg" else "video.mp4"
+        if (name.isBlank()) {
+            name = when (kind) {
+                MediaKind.PHOTO -> "photo.jpg"
+                MediaKind.VIDEO -> "video.mp4"
+                MediaKind.FILE -> "file.bin"
+            }
+        }
         val mimeType = resolvedMime?.takeIf { it.isNotBlank() } ?: MediaKind.mimeForExtension(name)
 
         return when (kind) {
             MediaKind.PHOTO -> inspectPhoto(context, uri, name, size, mimeType)
             MediaKind.VIDEO -> inspectVideo(context, uri, name, size, mimeType)
+            // Nothing to probe for an arbitrary file: no duration, no preview.
+            MediaKind.FILE -> MediaInfo(
+                uri = uri,
+                kind = MediaKind.FILE,
+                displayName = name,
+                sizeBytes = size,
+                mimeType = mimeType,
+                durationMs = 0,
+                pixelSize = null,
+                thumbnail = null,
+            )
         }
     }
 
