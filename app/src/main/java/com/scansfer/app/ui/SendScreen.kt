@@ -296,7 +296,7 @@ private fun PremiumGate(
                 Column {
                     Text("Sending files is premium", style = MaterialTheme.typography.titleMedium)
                     Text(
-                        "A one-off unlock, no subscription",
+                        "€2.99, one off — no subscription",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
