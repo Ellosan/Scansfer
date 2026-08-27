@@ -49,5 +49,5 @@ object Premium {
      * Where buyers get a code. While this is blank the unlock screen simply
      * omits its purchase button rather than pointing nowhere.
      */
-    const val PURCHASE_URL = ""
+    const val PURCHASE_URL = "https://ellosan.itch.io/scansfer-premium"
 }
