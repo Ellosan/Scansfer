@@ -24,7 +24,8 @@ class Entitlements(private val context: Context) {
     val redeemedCode: String? get() = prefs.getString(KEY_CODE, null)
 
     private val table: ByteArray by lazy {
-        context.resources.openRawResource(R.raw.unlock_codes).use { it.readBytes() }
+        context.resources.openRawResource(R.raw.unlock_codes)
+            .use { Unlock.parseTable(it.readBytes().toString(Charsets.US_ASCII)) }
     }
 
     /** @return true when the code was accepted; premium is then on for good. */
