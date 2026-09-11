@@ -11,7 +11,7 @@ That description is `com.scansfer.app.yml`, next to this file.
 - [x] The app is licensed (MIT, see `LICENSE` in the project root)
 - [x] Every dependency is open source — no Google Play Services, Firebase or ML Kit
 - [x] Store text and icon exist in `fastlane/metadata/android/en-US/`
-- [x] The release is tagged in git as `v2.1.3`
+- [x] The release is tagged in git as `v2.2`
 - [x] Screenshots added to `fastlane/metadata/android/en-US/images/phoneScreenshots/`
 - [x] The code is on the repository's default branch
 - [ ] The GitHub repository is public
@@ -39,6 +39,11 @@ after `IssueTracker`, with a blank line either side. Dropping it fails the
 3. In your fork, create `metadata/com.scansfer.app.yml` and paste in the
    contents of `com.scansfer.app.yml` from this folder
 4. Commit it with the message: `New app: Scansfer`
+
+   To revise a submission that is already open, commit the updated file to the
+   same branch. The merge request picks it up on its own — there is no need to
+   delete anything or force-push, and doing so throws away the review history
+   and the passing pipeline attached to it.
 5. Open a merge request against `fdroid/fdroiddata`, titled `New app: Scansfer`
 6. In the merge request's **Description** box, pick the **App inclusion**
    template from the dropdown, delete the instructions at the top, tick the
