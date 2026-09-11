@@ -97,7 +97,8 @@ class UnlockTest {
 
     @Test
     fun `the shipped table is well formed`() {
-        val blob = java.io.File("src/main/res/raw/unlock_codes.bin").readBytes()
+        val text = java.io.File("src/main/res/raw/unlock_codes.txt").readText()
+        val blob = Unlock.parseTable(text)
         assertTrue("table is missing", blob.isNotEmpty())
         assertEquals("table is not a whole number of digests", 0, blob.size % Unlock.DIGEST_BYTES)
 
@@ -111,5 +112,23 @@ class UnlockTest {
             } ?: 0
             assertTrue("table is not sorted at entry $i", cmp < 0)
         }
+    }
+
+    @Test
+    fun `the table parser tolerates comments, blanks and junk`() {
+        val good = "0050c5d54690411756841ddf738401ed"
+        val text = """
+            # a comment
+            $good
+
+              ${good.uppercase()}
+            not-hex-at-all
+            abc
+            zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+        """.trimIndent()
+        val parsed = Unlock.parseTable(text)
+        // Both well-formed rows survive, in either case; the junk is skipped.
+        assertEquals(2 * Unlock.DIGEST_BYTES, parsed.size)
+        assertEquals(0, Unlock.parseTable("# nothing but comments\n").size)
     }
 }

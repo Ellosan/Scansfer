@@ -64,6 +64,34 @@ object Unlock {
         return 0
     }
 
+    /**
+     * Parses the shipped digest table: one lowercase hex digest per line, with
+     * blank lines and `#` comments ignored. Stored as text rather than a blob
+     * because F-Droid's scanner rejects binaries in source, and a table anyone
+     * can read is a fair thing to ask for.
+     *
+     * Malformed lines are skipped rather than thrown on; a partly unreadable
+     * table costs a few codes, while an exception here would break redeeming
+     * for everyone.
+     */
+    fun parseTable(text: String): ByteArray {
+        val out = java.io.ByteArrayOutputStream()
+        for (line in text.lineSequence()) {
+            val row = line.trim()
+            if (row.isEmpty() || row.startsWith("#")) continue
+            if (row.length != DIGEST_BYTES * 2) continue
+            val bytes = ByteArray(DIGEST_BYTES)
+            var ok = true
+            for (i in 0 until DIGEST_BYTES) {
+                val byte = row.substring(i * 2, i * 2 + 2).toIntOrNull(16)
+                if (byte == null) { ok = false; break }
+                bytes[i] = byte.toByte()
+            }
+            if (ok) out.write(bytes)
+        }
+        return out.toByteArray()
+    }
+
     /** Groups a normalized code back into the form shown to the user. */
     fun format(raw: String): String =
         normalize(raw).chunked(4).joinToString("-")

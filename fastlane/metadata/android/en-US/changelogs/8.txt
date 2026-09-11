@@ -1,0 +1,6 @@
+Housekeeping only — nothing changes for you, and any unlock code you already
+have still works.
+
+The list the app checks unlock codes against is now stored as plain text
+rather than as a binary file, so it can be read and checked by anyone
+reviewing the source.

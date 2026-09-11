@@ -123,8 +123,9 @@ No Google Play Services, Firebase or ML Kit.
 Sending photos and videos is free. The File tab is unlocked with a one-off code,
 verified entirely on device.
 
-The app ships `app/src/main/res/raw/unlock_codes.bin`, a sorted table of
-truncated SHA-256 digests — one per issued code. Redeeming hashes the entered
+The app ships `app/src/main/res/raw/unlock_codes.txt`, a sorted table of
+truncated SHA-256 digests in hex — one per issued code, as text so it can be
+read and reviewed rather than taken on trust. Redeeming hashes the entered
 code and binary-searches that table, so there is no server to call, nothing to be
 down, and no network permission needed. The codes themselves are never in this
 repository and cannot be recovered from the hashes.
@@ -202,6 +203,10 @@ the new version up on its own.
 MIT — see [LICENSE](LICENSE).
 
 ## Version history
+
+- **2.2.1** — store the unlock digest table as text rather than a binary blob.
+  F-Droid's scanner rejects binaries in source, and a table anyone can read is a
+  fair thing to ask for. Same digests, so every code issued before still works.
 
 - **2.2.0** — send any file, not just photos and videos. The send screen gains a
   tab for it, and received files land in `Downloads/Scansfer`.

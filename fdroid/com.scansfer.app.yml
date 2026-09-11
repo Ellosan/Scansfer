@@ -12,14 +12,14 @@ RepoType: git
 Repo: https://github.com/Ellosan/Scansfer.git
 
 Builds:
-  - versionName: 2.1.3
-    versionCode: 6
-    commit: v2.1.3
+  - versionName: 2.2.1
+    versionCode: 8
+    commit: v2.2.1
     subdir: app
     gradle:
       - yes
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 2.1.3
-CurrentVersionCode: 6
+CurrentVersion: 2.2.1
+CurrentVersionCode: 8
