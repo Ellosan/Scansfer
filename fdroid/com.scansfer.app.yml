@@ -17,7 +17,7 @@ AllowedAPKSigningKeys: 1807c730fd1b0a84c26f73c8e2d26317c0b3bc87e78539a76dd518d1c
 Builds:
   - versionName: 2.2.2
     versionCode: 9
-    commit: REPLACE_WITH_FULL_COMMIT_HASH_OF_THE_v2_2_2_TAG
+    commit: 801281cd0ec5e8c7c4819de781dcfa5ea861ea4f
     subdir: app
     gradle:
       - yes
