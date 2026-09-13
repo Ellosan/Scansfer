@@ -1,0 +1,5 @@
+Housekeeping only — nothing changes for you.
+
+The build no longer stamps its source-control details into the app, which lets
+F-Droid verify that the app it distributes was built from exactly this source
+and ship the developer's own signed copy.
