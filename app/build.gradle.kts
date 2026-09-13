@@ -14,8 +14,8 @@ android {
         applicationId = "com.scansfer.app"
         minSdk = 29
         targetSdk = 35
-        versionCode = 8
-        versionName = "2.2.1"
+        versionCode = 9
+        versionName = "2.2.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -23,6 +23,13 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            // AGP stamps the git commit into META-INF/version-control-info.textproto,
+            // which differs between any two checkouts and is the only thing that
+            // stopped this build being byte-identical to F-Droid's. Reproducible
+            // builds matter more than the stamp: with them, F-Droid ships this
+            // very APK rather than re-signing its own, so users can move between
+            // GitHub and F-Droid without uninstalling.
+            vcsInfo { include = false }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

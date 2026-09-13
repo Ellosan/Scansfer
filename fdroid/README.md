@@ -11,7 +11,7 @@ That description is `com.scansfer.app.yml`, next to this file.
 - [x] The app is licensed (MIT, see `LICENSE` in the project root)
 - [x] Every dependency is open source — no Google Play Services, Firebase or ML Kit
 - [x] Store text and icon exist in `fastlane/metadata/android/en-US/`
-- [x] The release is tagged in git as `v2.2`
+- [x] The release is tagged in git as `v2.2.2`
 - [x] Screenshots added to `fastlane/metadata/android/en-US/images/phoneScreenshots/`
 - [x] The code is on the repository's default branch
 - [ ] The GitHub repository is public
@@ -19,6 +19,23 @@ That description is `com.scansfer.app.yml`, next to this file.
 Note that F-Droid reads the store text and screenshots from the tagged
 release, not from the default branch, so any change to them needs a new tag
 before it will show up on the listing.
+
+## Two things the reviewer will insist on
+
+`commit:` must be the **full 40-character commit hash**, never a tag or branch
+name. The copy in this folder deliberately carries an obvious placeholder so a
+tag name cannot be pasted in by accident.
+
+`Binaries` and `AllowedAPKSigningKeys` enable reproducible builds: F-Droid
+rebuilds the app, checks the result against the APK attached to the GitHub
+release, and on a match distributes that APK rather than re-signing its own.
+That is what lets someone move between the GitHub download and F-Droid without
+uninstalling, and per the merge request template it cannot be switched on after
+publication — so it has to be right the first time.
+
+Reproducibility depends on `vcsInfo { include = false }` in the release build
+type. Without it AGP stamps the git commit into the APK, which differs between
+any two checkouts and fails verification every time.
 
 ## Submitting
 

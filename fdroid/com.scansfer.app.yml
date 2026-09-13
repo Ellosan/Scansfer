@@ -10,16 +10,19 @@ AutoName: Scansfer
 
 RepoType: git
 Repo: https://github.com/Ellosan/Scansfer.git
+Binaries: https://github.com/Ellosan/Scansfer/releases/download/v%v/Scansfer-%v.apk
+
+AllowedAPKSigningKeys: 1807c730fd1b0a84c26f73c8e2d26317c0b3bc87e78539a76dd518d1cb19d952
 
 Builds:
-  - versionName: 2.2.1
-    versionCode: 8
-    commit: v2.2.1
+  - versionName: 2.2.2
+    versionCode: 9
+    commit: REPLACE_WITH_FULL_COMMIT_HASH_OF_THE_v2_2_2_TAG
     subdir: app
     gradle:
       - yes
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags
-CurrentVersion: 2.2.1
-CurrentVersionCode: 8
+CurrentVersion: 2.2.2
+CurrentVersionCode: 9
